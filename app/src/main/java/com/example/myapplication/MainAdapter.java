@@ -2,6 +2,7 @@ package com.example.myapplication;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,30 +18,39 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import static com.example.myapplication.FilterActivity.mypreference1;
+import static com.example.myapplication.FilterAdapter.Name;
+import static com.example.myapplication.FilterAdapter.Name1;
+import static com.example.myapplication.FilterAdapter.mypreference;
 import static com.example.myapplication.MainActivity.TAG;
 
 public class MainAdapter extends RecyclerView.Adapter<MainAdapter.MyViewHolder>    implements Filterable {
     ArrayList<String> namePlaceFilter;
     ArrayList<String> namePlace;
     ArrayList<String> addressPlace;
+    ArrayList<String> faxNumberList;
     ArrayList<String> mobileNumbers;
     Context context;
     private ContactsAdapterListener listener;
 
-    public MainAdapter(Context context, ArrayList<String> namePlace, ArrayList<String> addressPlace) {
+    public MainAdapter(Context context, ArrayList<String> namePlace, ArrayList<String> addressPlace,ArrayList<String> faxNumberList) {
         this.context = context;
         this.namePlace = namePlace;
         this.addressPlace = addressPlace;
+        this.faxNumberList = faxNumberList;
         //    this.mobileNumbers = mobileNumbers;
     }
 
     @Override
     public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         // infalte the item Layout
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.rowlayout, parent, false);
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.mainrecycleview, parent, false);
         MyViewHolder vh = new MyViewHolder(v); // pass the view to View Holder
         return vh;
     }
+
+    SharedPreferences  sharedpreferences1;
+
 
     @Override
     public void onBindViewHolder(MyViewHolder holder, final int position) {
@@ -61,10 +71,20 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.MyViewHolder> 
                 Intent detailIntent = new Intent(context, MapDetailActivity.class);
                 detailIntent.putExtra("name", namePlace.get(position));
                 detailIntent.putExtra("address", addressPlace.get(position));
+                detailIntent.putExtra("fax", faxNumberList.get(position));
                 context.startActivity(detailIntent);
 
             }
         });
+
+
+
+        sharedpreferences1 = context.getSharedPreferences(mypreference1,
+                Context.MODE_PRIVATE);
+        String score1 = sharedpreferences1.getString(Name1,"");
+
+        Log.i(TAG,"MainSP"+score1);
+
 
     }
 
