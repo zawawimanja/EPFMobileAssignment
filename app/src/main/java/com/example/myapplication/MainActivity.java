@@ -5,7 +5,9 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -35,6 +37,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 
+import static com.example.myapplication.FilterActivity.mypreference1;
+import static com.example.myapplication.FilterAdapter.Name;
+import static com.example.myapplication.FilterAdapter.Name1;
+import static com.example.myapplication.FilterAdapter.Name2;
+import static com.example.myapplication.FilterAdapter.mypreference;
+
 public class MainActivity extends AppCompatActivity {
 
     public static final String TAG="Main";
@@ -44,14 +52,33 @@ public class MainActivity extends AppCompatActivity {
     SearchView searchView;
     ArrayList<String> namePlace = new ArrayList<>();
     ArrayList<String> addressPlace = new ArrayList<>();
+    ArrayList<String> faxNumberList = new ArrayList<>();
     MainAdapter filterAdapter;
+    SharedPreferences sharedpreferences1;
+    String sortData,filterState;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         searchView = (SearchView) findViewById(R.id.searchView);
-        lv = (ListView) findViewById(R.id.list);
+
+
+        //sorting data
+        sharedpreferences1 = getSharedPreferences(mypreference1,
+                Context.MODE_PRIVATE);
+        sortData = sharedpreferences1.getString(Name2,"");
+        Log.i(TAG,"MainActivitySP"+sortData);
+
+       //sorting state
+        sharedpreferences1 = getSharedPreferences(mypreference1,
+                Context.MODE_PRIVATE);
+        filterState = sharedpreferences1.getString(Name1,"");
+
+        Log.i(TAG,"FilterState"+filterState);
+
+
 
         // get the reference of RecyclerView
         recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
@@ -65,6 +92,13 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+
+
+
+
+
+
+
 // Catch event on [x] button inside search view
         int searchCloseButtonId = searchView.getContext().getResources()
                 .getIdentifier("android:id/search_close_btn", null, null);
@@ -73,18 +107,21 @@ public class MainActivity extends AppCompatActivity {
         closeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Manage this event.
-//                Toast.makeText(getApplicationContext()," OTP Error ",
-//                        Toast.LENGTH_LONG).show();
+
 
                 requestOTP();
-                filterAdapter.notifyDataSetChanged();
+                searchView.setQuery("", false);
+                searchView.setIconified(true);
+
 
             }
         });
+
+
     }
 
 
+    int count=0;
 
     //otp problem serialnum
     private void requestOTP(){
@@ -112,19 +149,65 @@ public class MainActivity extends AppCompatActivity {
 
                             JSONArray arr = response.getJSONArray("lis");
                             JSONObject element;
-                            HashMap<String, String> contact = new HashMap<String, String>();
-                            for(int i = 0; i < arr.length(); i++) {
+
+
+                                //clear to avoid duplication
+                                namePlace.clear();
+                                addressPlace.clear();
+
+
+
+
+
+
+                                for(int i = 0; i < arr.length(); i++) {
                                 element = arr.getJSONObject(i);
 
 
-                                //add into  each list
-                                namePlace.add("EPF "+element.getString("nam")+" Office");
-                                addressPlace.add(element.getString("ads"));
 
-                                Collections.sort(namePlace);
-                                Collections.sort(addressPlace);
+                                    if(filterState==null){
+
+                                        namePlace.add("EPF "+element.getString("nam")+" Office");
+                                        addressPlace.add(element.getString("ads"));
+                                        faxNumberList.add(element.getString("fax"));
+                                    }
+
+                                   else if(filterState==element.getString("nam")) {
+
+                                        namePlace.add("EPF " + element.getString("nam") + " Office");
+                                        addressPlace.add(element.getString("ads"));
+                                        faxNumberList.add(element.getString("fax"));
+
+                                        break;
+                                    }
+                                    else{
+                                       //add into  each list
+                                        namePlace.add("EPF "+element.getString("nam")+" Office");
+                                        addressPlace.add(element.getString("ads"));
+                                        faxNumberList.add(element.getString("fax"));
+                                    }
+
+
+
+
+
+
+
+
+
+                                if(sortData.contains("Name")){
+                                    Collections.sort(namePlace);
+                                    Collections.sort(addressPlace);
+
+                                }
+
+
+
+
 
                                 Log.i(TAG, "PersonName: " + namePlace);
+
+
 
                             }
 
@@ -137,8 +220,14 @@ public class MainActivity extends AppCompatActivity {
                                     Toast.LENGTH_LONG).show();
                         }
 
-                                    filterAdapter = new MainAdapter(MainActivity.this, namePlace, addressPlace);
+
+
+
+                                    filterAdapter = new MainAdapter(MainActivity.this, namePlace, addressPlace,faxNumberList);
                                     recyclerView.setAdapter(filterAdapter); // set the Adapter to RecyclerView
+
+
+
 
                                     // refreshing recycler view
                                     filterAdapter.notifyDataSetChanged();
@@ -157,6 +246,10 @@ public class MainActivity extends AppCompatActivity {
                                         @Override
                                         public boolean onQueryTextChange(String newText) {
                                             filterAdapter.getFilter().filter(newText);
+
+                                            if(newText==null||newText.isEmpty()){
+                                                requestOTP();
+                                            }
 
                                             return false;
                                         }

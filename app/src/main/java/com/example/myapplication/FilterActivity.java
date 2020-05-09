@@ -4,8 +4,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 
 import org.json.JSONArray;
@@ -16,25 +23,78 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 
+import static com.example.myapplication.FilterAdapter.Name;
+import static com.example.myapplication.FilterAdapter.Name1;
+import static com.example.myapplication.FilterAdapter.Name2;
+import static com.example.myapplication.FilterAdapter.mypreference;
+
 public class FilterActivity extends AppCompatActivity {
     // ArrayList for person names, email Id's and mobile numbers
     ArrayList<String> namePlace = new ArrayList<>();
     ArrayList<String> addressPlace = new ArrayList<>();
     private ListView lv;
-
-
-    String[] sortArray = {"Name","Distance"};
-
+    public static final String TAG="Filter";
+    LinearLayout addressLinear,distanceLinear;
+    ImageView imageIcon,imageIcon2;
+    SharedPreferences sharedpreferences;
+    SharedPreferences sharedpreferences1;
+    public static final String mypreference1 = "mypref1";
+    String sortData;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_filter);
 
+        addressLinear=findViewById(R.id.addressLinear);
+        distanceLinear=findViewById(R.id.distanceLinear);
+        imageIcon=findViewById(R.id.imageIcon);
+        imageIcon2=findViewById(R.id.imageIcon2);
 
 
-        ArrayAdapter adapter = new ArrayAdapter<String>(this,R.layout.activity_listview,R.id.label,sortArray);
-        lv = (ListView) findViewById(R.id.list);
-        lv.setAdapter(adapter);
+        sharedpreferences1 = getSharedPreferences(mypreference1,
+                Context.MODE_PRIVATE);
+        sortData = sharedpreferences1.getString(Name2,"");
+        if(sortData.contains("Name")){
+            imageIcon.setVisibility(View.VISIBLE);
+            imageIcon2.setVisibility(View.INVISIBLE);
+        }else{
+            imageIcon2.setVisibility(View.VISIBLE);
+            imageIcon.setVisibility(View.INVISIBLE);
+        }
+
+        addressLinear.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                imageIcon.setVisibility(View.VISIBLE);
+                imageIcon2.setVisibility(View.INVISIBLE);
+
+                sortData="Name";
+
+                sharedpreferences1 = getSharedPreferences(mypreference1,  Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedpreferences1.edit();
+                editor.putString(Name2, sortData);
+                editor.commit();
+            }
+        });
+
+
+        distanceLinear.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                imageIcon2.setVisibility(View.VISIBLE);
+                imageIcon.setVisibility(View.INVISIBLE);
+
+                sortData="Distance";
+
+                sharedpreferences1 = getSharedPreferences(mypreference1,  Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedpreferences1.edit();
+                editor.putString(Name2, sortData);
+                editor.commit();
+            }
+        });
+
+
+
 
 
         // get the reference of RecyclerView
@@ -86,5 +146,33 @@ public class FilterActivity extends AppCompatActivity {
             return null;
         }
         return json;
+    }
+
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+
+        sharedpreferences = getSharedPreferences(mypreference,
+                Context.MODE_PRIVATE);
+        String score1 = sharedpreferences.getString(Name,"");
+
+        Log.i(TAG,"SPValue2"+score1);
+
+        sharedpreferences1 = getSharedPreferences(mypreference1,  Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedpreferences1.edit();
+        editor.putString(Name1, score1);
+        editor.commit();
+
+        Log.i(TAG,"Name1"+score1);
+
+
+        Intent detailIntent = new Intent(this, MainActivity.class);
+        detailIntent.putExtra(Name1,score1);
+        startActivity(detailIntent);
+
+
+
+
     }
 }
