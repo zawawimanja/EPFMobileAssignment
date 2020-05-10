@@ -94,6 +94,7 @@
                 items for a single row of RecyclerView
                 -->
                 <TextView
+                    android:layout_gravity="center"
                     android:id="@+id/name"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -102,7 +103,8 @@
                     android:textSize="20sp" />
 
                 <TextView
-                    android:text="100km"
+                    android:layout_gravity="center"
+
                     android:id="@+id/distance"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

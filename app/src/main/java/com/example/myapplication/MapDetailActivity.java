@@ -50,11 +50,18 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.GroundOverlayOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
-import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.
+
+
+
+
+        model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PointOfInterest;
 
 import java.util.Locale;
+
+import static com.example.myapplication.MainActivity.TAG;
 
 public class MapDetailActivity extends AppCompatActivity implements
         OnMapReadyCallback {
@@ -78,6 +85,7 @@ public class MapDetailActivity extends AppCompatActivity implements
         // Initialize the views.
         TextView namePlace = findViewById(R.id.name);
         TextView distance = findViewById(R.id.distance);
+
         TextView nameAddress= findViewById(R.id.nameAdress);
         TextView faxNumber= findViewById(R.id.faxNumber);
 
@@ -87,9 +95,19 @@ public class MapDetailActivity extends AppCompatActivity implements
         // Set the text from the Intent extra.
        namePlace.setText(getIntent().getStringExtra("name"));
 
+       double distanceValue= getIntent().getDoubleExtra("distance",0);
+
+        Log.i(TAG,"DistanceKMMapDetail"+ distanceValue);
+
+      distance.setText(Double.toString(distanceValue));
+
+        namePlace.setText(getIntent().getStringExtra("name"));
+
         nameAddress.setText(getIntent().getStringExtra("address"));
 
         faxNumber.setText(getIntent().getStringExtra("fax"));
+
+
 
         // Obtain the SupportMapFragment and get notified when the map is ready
         // to be used.
@@ -140,7 +158,7 @@ public class MapDetailActivity extends AppCompatActivity implements
      //   LatLng home = new LatLng( 1.461468,103.758697 );
         // Pan the camera to your home address (in this case, Google HQ).
      //   LatLng home = new LatLng(37.421982, -122.085109);
-        LatLng home = new LatLng( 1.849373,102.931331 );
+        LatLng home = new LatLng( getIntent().getDoubleExtra("lat",0),getIntent().getDoubleExtra("lon",0) );
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(home, INITIAL_ZOOM));
 
         // Add a ground overlay 100 meters in width to the home location.
