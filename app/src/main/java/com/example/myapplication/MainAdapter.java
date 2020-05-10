@@ -32,13 +32,13 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.MyViewHolder> 
     ArrayList<String> faxNumberList;
     ArrayList<Double> latList = new ArrayList<>();
     ArrayList<Double> lonList = new ArrayList<>();
-    String latitude, longitude;
+    Double latitude, longitude;
     Context context;
     private ContactsAdapterListener listener;
     SharedPreferences  sharedpreferences1;
     Double tDouble;
     ArrayList<Double> distance= new ArrayList<>();
-    public MainAdapter(Context context, ArrayList<String> namePlace, ArrayList<String> addressPlace,ArrayList<String> faxNumberList,ArrayList<Double> latList,ArrayList<Double> lonList,String lattitude,String longitude) {
+    public MainAdapter(Context context, ArrayList<String> namePlace, ArrayList<String> addressPlace, ArrayList<String> faxNumberList, ArrayList<Double> latList, ArrayList<Double> lonList, double lattitude, double longitude) {
         this.context = context;
         this.namePlace = namePlace;
         this.addressPlace = addressPlace;
@@ -66,29 +66,37 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.MyViewHolder> 
         holder.name.setText(namePlace.get(position));
         holder.address.setText(addressPlace.get(position));
 
+        if(latitude!=null&longitude!=null){
 
-        //formula
-        double converlatGPS=Double.parseDouble(latitude);
-        double converlonGPS=Double.parseDouble(longitude);
+            //formula
+            double converlatGPS=latitude;
+            double converlonGPS=longitude;
+            Log.i(TAG,"LocationUpdateAdapter"+latitude+longitude);
 
-        double converlat=Double.parseDouble(String.valueOf(latList.get(position)));
-        double converlon=Double.parseDouble(String.valueOf(lonList.get(position)));
+            double converlat=Double.parseDouble(String.valueOf(latList.get(position)));
+            double converlon=Double.parseDouble(String.valueOf(lonList.get(position)));
 
-       Double value =distance(converlatGPS,converlonGPS,converlat,converlon,"K");
-      tDouble =
-                new BigDecimal(value).setScale(1, BigDecimal.ROUND_HALF_UP).doubleValue();
+            Double value =distance(converlatGPS,converlonGPS,converlat,converlon,"K");
+            tDouble =
+                    new BigDecimal(value).setScale(1, BigDecimal.ROUND_HALF_UP).doubleValue();
 
 
-        distance.add(tDouble);
-        Log.i(TAG,"ValueDistance"+value);
+            distance.add(tDouble);
+            Log.i(TAG,"ValueDistance"+value);
 
-        if(tDouble>1){
-            holder.distance.setText(tDouble+" km");
+            if(tDouble>1){
+                holder.distance.setText(tDouble+" km");
 
+            }else{
+                holder.distance.setText(tDouble+" m");
+
+            }
         }else{
-            holder.distance.setText(tDouble+" m");
-
+            holder.distance.setText("NoData");
         }
+
+
+
 
 
         // implement setOnClickListener event on item view.

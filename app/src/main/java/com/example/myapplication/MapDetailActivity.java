@@ -68,7 +68,7 @@ public class MapDetailActivity extends AppCompatActivity implements
 
     private static final String TAG = MapDetailActivity.class.getSimpleName();
 
-    private static final int REQUEST_LOCATION_PERMISSION = 1;
+    public static final int REQUEST_LOCATION_PERMISSION = 1;
     public static final float INITIAL_ZOOM = 15f;
     private GoogleMap mMap;
     Toolbar toolbar;
@@ -99,7 +99,12 @@ public class MapDetailActivity extends AppCompatActivity implements
 
         Log.i(TAG,"DistanceKMMapDetail"+ distanceValue);
 
-      distance.setText(Double.toString(distanceValue));
+        if(distanceValue>1){
+            distance.setText(Double.toString(distanceValue)+"km");
+        }else{
+            distance.setText(Double.toString(distanceValue)+"m");
+        }
+
 
         namePlace.setText(getIntent().getStringExtra("name"));
 
