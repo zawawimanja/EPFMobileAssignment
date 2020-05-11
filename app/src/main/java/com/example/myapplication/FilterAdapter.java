@@ -52,7 +52,7 @@ public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.MyViewHold
         MyViewHolder vh = new MyViewHolder(v); // pass the view to View Holder
         return vh;
     }
-    private int currentPosition = -1;
+    int selectedPosition=0;
 
     @Override
     public void onBindViewHolder(final MyViewHolder holder, final int position) {
@@ -61,9 +61,27 @@ public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.MyViewHold
 
         // set the data in items
         holder.name.setText(namePlace.get(position));
-  //     holder.email.setText(addressPlace.get(position));
-     //   holder.mobileNo.setText(mobileNumbers.get(position));
-        // implement setOnClickListener event on item view.
+
+
+
+
+
+        if (selectedPosition == position) {
+            holder.itemView.setSelected(true); //using selector drawable
+
+            holder.imageView.setVisibility(View.VISIBLE);
+
+
+
+        } else {
+            holder.itemView.setSelected(false);
+            holder.imageView.setVisibility(View.INVISIBLE);
+
+        }
+
+        final int finalPosition = position;
+
+
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -71,13 +89,8 @@ public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.MyViewHold
                 Toast.makeText(context, namePlace.get(position), Toast.LENGTH_SHORT).show();
 
 
-
-                if (currentPosition == position) {
-                    holder.imageView.setVisibility(View.INVISIBLE);
-                } else {
-                    holder.imageView.setVisibility(View.VISIBLE);
-                }
-
+                selectedPosition= finalPosition;
+                notifyDataSetChanged();
 
 
 
@@ -99,16 +112,6 @@ public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.MyViewHold
     }
 
 
-
-
-
-    public void setCurrentPosition(int currentPosition) {
-        this.currentPosition = currentPosition;
-    }
-
-
-
-
     @Override
     public int getItemCount() {
         return namePlace.size();
@@ -126,9 +129,8 @@ public class FilterAdapter extends RecyclerView.Adapter<FilterAdapter.MyViewHold
 
             // get the reference of item view's
             name = (TextView) itemView.findViewById(R.id.name);
-            imageView = (ImageView) itemView.findViewById(R.id.imageIcon);
-       //    email = (TextView) itemView.findViewById(R.id.email);
-         //   mobileNo = (TextView) itemView.findViewById(R.id.mobileNo);
+            imageView = (ImageView) itemView.findViewById(R.id.imageIcon1);
+
 
         }
     }

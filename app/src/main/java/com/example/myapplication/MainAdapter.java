@@ -36,9 +36,9 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.MyViewHolder> 
     Context context;
     private ContactsAdapterListener listener;
     SharedPreferences  sharedpreferences1;
-    Double tDouble;
+    double tDouble;
     ArrayList<Double> distance= new ArrayList<>();
-    public MainAdapter(Context context, ArrayList<String> namePlace, ArrayList<String> addressPlace, ArrayList<String> faxNumberList, ArrayList<Double> latList, ArrayList<Double> lonList, double lattitude, double longitude) {
+    public MainAdapter(Context context, ArrayList<String> namePlace, ArrayList<String> addressPlace, ArrayList<String> faxNumberList, ArrayList<Double> latList, ArrayList<Double> lonList,double lattitude, double longitude) {
         this.context = context;
         this.namePlace = namePlace;
         this.addressPlace = addressPlace;
@@ -57,7 +57,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.MyViewHolder> 
         return vh;
     }
 
-
+    private int selectedPosition = -1;// no selection by default
 
     @Override
     public void onBindViewHolder(MyViewHolder holder, final int position) {

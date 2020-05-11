@@ -5,6 +5,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -33,6 +34,7 @@ import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.BuildConfig;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -70,6 +72,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Locale;
 
+import static android.Manifest.permission.ACCESS_FINE_LOCATION;
+import static android.Manifest.permission_group.CAMERA;
 import static com.example.myapplication.FilterActivity.mypreference1;
 import static com.example.myapplication.FilterAdapter.Name1;
 import static com.example.myapplication.FilterAdapter.Name2;
@@ -81,7 +85,6 @@ public class MainActivity extends AppCompatActivity
     public static final String TAG="Main";
 
     RecyclerView recyclerView;
-    private ListView lv;
     SearchView searchView;
     ArrayList<String> namePlace = new ArrayList<>();
     ArrayList<String> addressPlace = new ArrayList<>();
@@ -89,16 +92,9 @@ public class MainActivity extends AppCompatActivity
     ArrayList<Double> latList = new ArrayList<>();
     ArrayList<Double> lonList = new ArrayList<>();
 
-
-
-
     MainAdapter filterAdapter;
     SharedPreferences sharedpreferences1;
     String sortData,filterState;
-    LocationManager locationManager;
-    double latitude;
-             double longitude;
-
 
 
    /**
@@ -126,7 +122,7 @@ public class MainActivity extends AppCompatActivity
    // Keys for storing activity state in the Bundle.
    private final static String KEY_REQUESTING_LOCATION_UPDATES = "requesting-location-updates";
    private final static String KEY_LOCATION = "location";
-   private final static String KEY_LAST_UPDATED_TIME_STRING = "last-updated-time-string";
+
 
    /**
     * Provides access to the Fused Location Provider API.
@@ -166,16 +162,20 @@ public class MainActivity extends AppCompatActivity
     * Start Updates and Stop Updates buttons.
     */
    private Boolean mRequestingLocationUpdates;
-
-
+             private TextView mLatitudeTextView;
+             private TextView mLongitudeTextView;
+             ImageView closeButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        mLatitudeTextView = (TextView) findViewById(R.id.latitude_text);
+        mLongitudeTextView = (TextView) findViewById(R.id.longitude_text);
 
-
+        mLatitudeTextView.setVisibility(View.INVISIBLE);
+        mLongitudeTextView.setVisibility(View.INVISIBLE);
 
         searchView = (SearchView) findViewById(R.id.searchView);
 
@@ -201,31 +201,20 @@ public class MainActivity extends AppCompatActivity
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getApplicationContext());
         recyclerView.setLayoutManager(linearLayoutManager);
 
-        fetchJson();
+
 
 
 // Catch event on [x] button inside search view
         int searchCloseButtonId = searchView.getContext().getResources()
                 .getIdentifier("android:id/search_close_btn", null, null);
-        ImageView closeButton = (ImageView) this.searchView.findViewById(searchCloseButtonId);
+        closeButton = (ImageView) this.searchView.findViewById(searchCloseButtonId);
 // Set on click listener
-        closeButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
 
-
-                fetchJson();
-                searchView.setQuery("", false);
-                searchView.setIconified(true);
-
-
-            }
-        });
 
 
 
 // Update values using data stored in the Bundle.
-        updateValuesFromBundle(savedInstanceState);
+      //  updateValuesFromBundle(savedInstanceState);
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         mSettingsClient = LocationServices.getSettingsClient(this);
         // Kick off the process of building the LocationCallback, LocationRequest, and
@@ -237,26 +226,12 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-             @Override
-             public void onResume() {
-                 super.onResume();
-                 // Within {@code onPause()}, we remove location updates. Here, we resume receiving
-                 // location updates if the user has requested them.
-                 if (checkPermissions()) {
-                     startLocationUpdates();
-                 } else if (!checkPermissions()) {
-                     requestPermissions();
-                 }
-
-                 updateUI();
-             }
 
 
 
-             int count=0;
 
     //otp problem serialnum
-    private void fetchJson(){
+    private void fetchJson(final double latitude, final double longitude, final String search){
 
 
             try {
@@ -302,8 +277,7 @@ public class MainActivity extends AppCompatActivity
                                         latList.add((double) element.getDouble("lat"));
                                         lonList.add((double) element.getDouble("lon"));
 
-                                        Collections.sort(namePlace);
-                                        Collections.sort(addressPlace);
+
 
                                     }
 
@@ -323,8 +297,22 @@ public class MainActivity extends AppCompatActivity
                                         latList.add((double) element.getDouble("lat"));
                                         lonList.add((double) element.getDouble("lon"));
 
+
+                                    }
+
+
+
+
+                                        //sorting
+                                    if(sortData.contains("Name")){
                                         Collections.sort(namePlace);
                                         Collections.sort(addressPlace);
+
+                                    }
+                                    else if(sortData.contains("Distance")){
+                                        Collections.sort(namePlace);
+                                        Collections.sort(addressPlace);
+
                                     }
 
 
@@ -332,14 +320,6 @@ public class MainActivity extends AppCompatActivity
 
 
 
-
-
-
-                                if(sortData.contains("Name")){
-                                    Collections.sort(namePlace);
-                                    Collections.sort(addressPlace);
-
-                                }
 
 
 
@@ -363,14 +343,20 @@ public class MainActivity extends AppCompatActivity
 
 
 
-             filterAdapter = new MainAdapter(MainActivity.this, namePlace, addressPlace,faxNumberList,latList,lonList,latitude,longitude);
+             filterAdapter = new MainAdapter(MainActivity.this, namePlace, addressPlace,faxNumberList,latList,lonList, latitude, longitude);
             recyclerView.setAdapter(filterAdapter); // set the Adapter to RecyclerView
 
 
 
+                                    if(search.contains( "update")){
 
-                                    // refreshing recycler view
-                                    filterAdapter.notifyDataSetChanged();
+                                        // refreshing recycler view
+                                        filterAdapter.notifyDataSetChanged();
+                                    }
+
+
+
+
 
 
                                     searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -379,6 +365,14 @@ public class MainActivity extends AppCompatActivity
 
                                             filterAdapter.getFilter().filter(query);
 
+//                                            if(query==null||query.isEmpty()){
+//                                                String search="search";
+//                                                fetchJson(latitude,longitude,search);
+//                                            }
+
+                                            String search="search";
+
+                                             getUpdateUI(search);
 
                                             return false;
                                         }
@@ -387,9 +381,10 @@ public class MainActivity extends AppCompatActivity
                                         public boolean onQueryTextChange(String newText) {
                                             filterAdapter.getFilter().filter(newText);
 
-                                            if(newText==null||newText.isEmpty()){
-                                                fetchJson();
-                                            }
+//                                            if(newText==null||newText.isEmpty()){
+//                                                String search="search";
+//                                                fetchJson(latitude,longitude,search);
+//                                            }
 
                                             return false;
                                         }
@@ -439,6 +434,21 @@ public class MainActivity extends AppCompatActivity
 
 
     }
+             String data;
+
+    public String getUpdateUI(String search){
+
+
+        if(search.contains("search")){
+
+            data =search;
+        }
+
+        return  data;
+    }
+
+
+
 
 
     @Override
@@ -467,75 +477,6 @@ public class MainActivity extends AppCompatActivity
     }
 
 
-
-
-    private static final int REQUEST_LOCATION = 1;
-
-    private void OnGPS() {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage("Enable GPS").setCancelable(false).setPositiveButton("Yes", new  DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
-            }
-        }).setNegativeButton("No", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
-        final AlertDialog alertDialog = builder.create();
-        alertDialog.show();
-    }
-
-//    private void getLocation() {
-//        if (ActivityCompat.checkSelfPermission(
-//                MainActivity.this,Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-//                MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-//            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION);
-//        } else {
-//            Location locationGPS = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-//            if (locationGPS != null) {
-//                double lat = locationGPS.getLatitude();
-//                double longi = locationGPS.getLongitude();
-//                latitude = String.valueOf(lat);
-//                longitude = String.valueOf(longi);
-//
-//
-//                Log.i(TAG,"LatLonGPS :"+latitude+longitude);
-//            //    showLocation.setText("Your Location: " + "\n" + "Latitude: " + latitude + "\n" + "Longitude: " + longitude);
-//            } else {
-//                Toast.makeText(this, "Unable to find location.", Toast.LENGTH_SHORT).show();
-//            }
-//        }
-//    }
-
-             /**
-              * Updates fields based on data stored in the bundle.
-              *
-              * @param savedInstanceState The activity state saved in the Bundle.
-              */
-             private void updateValuesFromBundle(Bundle savedInstanceState) {
-                 if (savedInstanceState != null) {
-                     // Update the value of mRequestingLocationUpdates from the Bundle, and make sure that
-                     // the Start Updates and Stop Updates buttons are correctly enabled or disabled.
-                     if (savedInstanceState.keySet().contains(KEY_REQUESTING_LOCATION_UPDATES)) {
-                         mRequestingLocationUpdates = savedInstanceState.getBoolean(
-                                 KEY_REQUESTING_LOCATION_UPDATES);
-                     }
-
-                     // Update the value of mCurrentLocation from the Bundle and update the UI to show the
-                     // correct latitude and longitude.
-                     if (savedInstanceState.keySet().contains(KEY_LOCATION)) {
-                         // Since KEY_LOCATION was found in the Bundle, we can be sure that mCurrentLocation
-                         // is not null.
-                         mCurrentLocation = savedInstanceState.getParcelable(KEY_LOCATION);
-                     }
-
-
-                     updateUI();
-                 }
-             }
 
 
              /**
@@ -567,7 +508,6 @@ public class MainActivity extends AppCompatActivity
                  mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
              }
 
-
              /**
               * Creates a callback for receiving location events.
               */
@@ -578,7 +518,7 @@ public class MainActivity extends AppCompatActivity
                          super.onLocationResult(locationResult);
 
                          mCurrentLocation = locationResult.getLastLocation();
-                                updateLocationUI();
+                         updateLocationUI();
                      }
                  };
              }
@@ -615,216 +555,6 @@ public class MainActivity extends AppCompatActivity
                  }
              }
 
-             /**
-              * Handles the Start Updates button and requests start of location updates. Does nothing if
-              * updates have already been requested.
-              */
-             public void startUpdatesButtonHandler(View view) {
-                 if (!mRequestingLocationUpdates) {
-                     mRequestingLocationUpdates = true;
-                    // setButtonsEnabledState();
-                     startLocationUpdates();
-                 }
-             }
-
-
-             /**
-              * Callback received when a permissions request has been completed.
-              */
-             @Override
-             public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
-                                                    @NonNull int[] grantResults) {
-                 Log.i(TAG, "onRequestPermissionResult");
-                 if (requestCode == REQUEST_PERMISSIONS_REQUEST_CODE) {
-                     if (grantResults.length <= 0) {
-                         // If user interaction was interrupted, the permission request is cancelled and you
-                         // receive empty arrays.
-                         Log.i(TAG, "User interaction was cancelled.");
-                     } else if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                         if (mRequestingLocationUpdates) {
-                             Log.i(TAG, "Permission granted, updates requested, starting location updates");
-                             startLocationUpdates();
-                         }
-                     } else {
-                         // Permission denied.
-
-                         // Notify the user via a SnackBar that they have rejected a core permission for the
-                         // app, which makes the Activity useless. In a real app, core permissions would
-                         // typically be best requested during a welcome-screen flow.
-
-                         // Additionally, it is important to remember that a permission might have been
-                         // rejected without asking the user for permission (device policy or "Never ask
-                         // again" prompts). Therefore, a user interface affordance is typically implemented
-                         // when permissions are denied. Otherwise, your app could appear unresponsive to
-                         // touches or interactions which have required permissions.
-                         showSnackbar(R.string.app_name,
-                                 R.string.app_name, new View.OnClickListener() {
-                                     @Override
-                                     public void onClick(View view) {
-                                         // Build intent that displays the App settings screen.
-                                         Intent intent = new Intent();
-                                         intent.setAction(
-                                                 Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                                         Uri uri = Uri.fromParts("package",
-                                                 BuildConfig.APPLICATION_ID, null);
-                                         intent.setData(uri);
-                                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                         startActivity(intent);
-                                     }
-                                 });
-                     }
-                 }
-             }
-
-             /**
-              * Return the current state of the permissions needed.
-              */
-             private boolean checkPermissions() {
-                 int permissionState = ActivityCompat.checkSelfPermission(this,
-                         Manifest.permission.ACCESS_FINE_LOCATION);
-                 return permissionState == PackageManager.PERMISSION_GRANTED;
-             }
-
-
-             private void requestPermissions() {
-                 boolean shouldProvideRationale =
-                         ActivityCompat.shouldShowRequestPermissionRationale(this,
-                                 Manifest.permission.ACCESS_FINE_LOCATION);
-
-                 // Provide an additional rationale to the user. This would happen if the user denied the
-                 // request previously, but didn't check the "Don't ask again" checkbox.
-                 if (shouldProvideRationale) {
-                     Log.i(TAG, "Displaying permission rationale to provide additional context.");
-                     showSnackbar(R.string.app_name,
-                             android.R.string.ok, new View.OnClickListener() {
-                                 @Override
-                                 public void onClick(View view) {
-                                     // Request permission
-                                     ActivityCompat.requestPermissions(MainActivity.this,
-                                             new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                                             REQUEST_PERMISSIONS_REQUEST_CODE);
-                                 }
-                             });
-                 } else {
-                     Log.i(TAG, "Requesting permission");
-                     // Request permission. It's possible this can be auto answered if device policy
-                     // sets the permission in a given state or the user denied the permission
-                     // previously and checked "Never ask again".
-                     ActivityCompat.requestPermissions(MainActivity.this,
-                             new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                             REQUEST_PERMISSIONS_REQUEST_CODE);
-                 }
-             }
-
-
-
-             /**
-              * Shows a {@link Snackbar}.
-              *
-              * @param mainTextStringId The id for the string resource for the Snackbar text.
-              * @param actionStringId   The text of the action item.
-              * @param listener         The listener associated with the Snackbar action.
-              */
-             private void showSnackbar(final int mainTextStringId, final int actionStringId,
-                                       View.OnClickListener listener) {
-                 Snackbar.make(
-                         findViewById(android.R.id.content),
-                         getString(mainTextStringId),
-                         Snackbar.LENGTH_INDEFINITE)
-                         .setAction(getString(actionStringId), listener).show();
-             }
-
-
-//             /**
-//              * Stores activity data in the Bundle.
-//              */
-//             public void onSaveInstanceState(Bundle savedInstanceState) {
-//                 savedInstanceState.putBoolean(KEY_REQUESTING_LOCATION_UPDATES, mRequestingLocationUpdates);
-//                 savedInstanceState.putParcelable(KEY_LOCATION, mCurrentLocation);
-//                 savedInstanceState.putString(KEY_LAST_UPDATED_TIME_STRING, mLastUpdateTime);
-//                 super.onSaveInstanceState(savedInstanceState);
-//             }
-//
-
-//             @Override
-//             public void onResume() {
-//                 super.onResume();
-//                 // Within {@code onPause()}, we remove location updates. Here, we resume receiving
-//                 // location updates if the user has requested them.
-//                 if ( checkPermissions()) {
-//                     startLocationUpdates();
-//                 } else if (!checkPermissions()) {
-//                     requestPermissions();
-//                 }
-//
-//                 updateUI();
-//             }
-//
-//             @Override
-//             protected void onPause() {
-//                 super.onPause();
-//
-//                 // Remove location updates to save battery.
-//                 stopLocationUpdates();
-//             }
-
-
-             /**
-              * Sets the value of the UI fields for the location latitude, longitude and last update time.
-              */
-             private void updateLocationUI() {
-                 if (mCurrentLocation != null) {
-                     latitude =  mCurrentLocation.getLatitude();
-                    longitude= mCurrentLocation.getLongitude();
-
-                    Log.i(TAG,"LocationUpdate"+latitude+longitude);
-
-
-//                     longitude = String.valueOf(longi);
-//                     mLatitudeTextView.setText(String.format(Locale.ENGLISH, "%s: %f", mLatitudeLabel,
-//                            ));
-//                     mLongitudeTextView.setText(String.format(Locale.ENGLISH, "%s: %f", mLongitudeLabel,
-//                           ));
-//                     mLastUpdateTimeTextView.setText(String.format(Locale.ENGLISH, "%s: %s",
-//                             mLastUpdateTimeLabel, mLastUpdateTime));
-                 }
-             }
-
-//             /**
-//              * Removes location updates from the FusedLocationApi.
-//              */
-//             private void stopLocationUpdates() {
-//                 if (!mRequestingLocationUpdates) {
-//                     Log.d(TAG, "stopLocationUpdates: updates never requested, no-op.");
-//                     return;
-//                 }
-//
-//                 // It is a good practice to remove location requests when the activity is in a paused or
-//                 // stopped state. Doing so helps battery performance and is especially
-//                 // recommended in applications that request frequent location updates.
-//                 mFusedLocationClient.removeLocationUpdates(mLocationCallback)
-//                         .addOnCompleteListener(this, new OnCompleteListener<Void>() {
-//                             @Override
-//                             public void onComplete(@NonNull Task<Void> task) {
-//                                 mRequestingLocationUpdates = false;
-//                              //   setButtonsEnabledState();
-//                             }
-//                         });
-//             }
-
-
-
-
-
-             /**
-              * Handles the Stop Updates button, and requests removal of location updates.
-              */
-             public void stopUpdatesButtonHandler(View view) {
-                 // It is a good practice to remove location requests when the activity is in a paused or
-                 // stopped state. Doing so helps battery performance and is especially
-                 // recommended in applications that request frequent location updates.
-               //  stopLocationUpdates();
-             }
 
              /**
               * Requests location updates from the FusedLocationApi. Note: we don't call this unless location
@@ -879,11 +609,176 @@ public class MainActivity extends AppCompatActivity
               * Updates all UI fields.
               */
              private void updateUI() {
-                // setButtonsEnabledState();
+
                  updateLocationUI();
+             }
+
+
+             /**
+              * Sets the value of the UI fields for the location latitude, longitude and last update time.
+              */
+             private void updateLocationUI() {
+                 if (mCurrentLocation != null) {
+                     mLatitudeTextView.setText(String.format(Locale.ENGLISH,  "%f",
+                             mCurrentLocation.getLatitude()));
+
+                     mLongitudeTextView.setText(String.format(Locale.ENGLISH,  "%f",
+                             mCurrentLocation.getLongitude()));
+
+                     String search="update";
+                     fetchJson( mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude(),search);
+
+
+
+                     closeButton.setOnClickListener(new View.OnClickListener() {
+                         @Override
+                         public void onClick(View v) {
+
+                             String search="update";
+                             fetchJson( mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude(),search);
+                             searchView.setQuery("", false);
+                             searchView.setIconified(true);
+
+
+                         }
+                     });
+
+                 }
+             }
+
+
+//
+//             @Override
+             public void onResume() {
+                 super.onResume();
+                 // Within {@code onPause()}, we remove location updates. Here, we resume receiving
+                 // location updates if the user has requested them.
+                 if (checkPermissions()) {
+                     startLocationUpdates();
+                 } else if (!checkPermissions()) {
+                     requestPermissions();
+                 }
+
+              //   updateUI();
+             }
+//
+//             @Override
+//             protected void onPause() {
+//                 super.onPause();
+//
+//                 // Remove location updates to save battery.
+//                 //stopLocationUpdates();
+//             }
+
+             /**
+              * Stores activity data in the Bundle.
+              */
+
+
+             /**
+              * Shows a {@link Snackbar}.
+              *
+              * @param mainTextStringId The id for the string resource for the Snackbar text.
+              * @param actionStringId   The text of the action item.
+              * @param listener         The listener associated with the Snackbar action.
+              */
+             private void showSnackbar(final int mainTextStringId, final int actionStringId,
+                                       View.OnClickListener listener) {
+                 Snackbar.make(
+                         findViewById(android.R.id.content),
+                         getString(mainTextStringId),
+                         Snackbar.LENGTH_INDEFINITE)
+                         .setAction(getString(actionStringId), listener).show();
+             }
+
+             /**
+              * Return the current state of the permissions needed.
+              */
+             private boolean checkPermissions() {
+                 int permissionState = ActivityCompat.checkSelfPermission(this,
+                         Manifest.permission.ACCESS_FINE_LOCATION);
+                 return permissionState == PackageManager.PERMISSION_GRANTED;
+             }
+
+             private void requestPermissions() {
+                 boolean shouldProvideRationale =
+                         ActivityCompat.shouldShowRequestPermissionRationale(this,
+                                 Manifest.permission.ACCESS_FINE_LOCATION);
+
+                 // Provide an additional rationale to the user. This would happen if the user denied the
+                 // request previously, but didn't check the "Don't ask again" checkbox.
+                 if (shouldProvideRationale) {
+                     Log.i(TAG, "Displaying permission rationale to provide additional context.");
+                     showSnackbar(R.string.app_name,
+                             android.R.string.ok, new View.OnClickListener() {
+                                 @Override
+                                 public void onClick(View view) {
+                                     // Request permission
+                                     ActivityCompat.requestPermissions(MainActivity.this,
+                                             new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                                             REQUEST_PERMISSIONS_REQUEST_CODE);
+                                 }
+                             });
+                 } else {
+                     Log.i(TAG, "Requesting permission");
+                     // Request permission. It's possible this can be auto answered if device policy
+                     // sets the permission in a given state or the user denied the permission
+                     // previously and checked "Never ask again".
+                     ActivityCompat.requestPermissions(MainActivity.this,
+                             new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                             REQUEST_PERMISSIONS_REQUEST_CODE);
+                 }
+             }
+
+             /**
+              * Callback received when a permissions request has been completed.
+              */
+             @Override
+             public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                                    @NonNull int[] grantResults) {
+                 Log.i(TAG, "onRequestPermissionResult");
+                 if (requestCode == REQUEST_PERMISSIONS_REQUEST_CODE) {
+                     if (grantResults.length <= 0) {
+                         // If user interaction was interrupted, the permission request is cancelled and you
+                         // receive empty arrays.
+                         Log.i(TAG, "User interaction was cancelled.");
+                     } else if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                         Log.i(TAG, "Permission granted, updates requested, starting location updates");
+                         startLocationUpdates();
+
+                     } else {
+                         // Permission denied.
+
+                         // Notify the user via a SnackBar that they have rejected a core permission for the
+                         // app, which makes the Activity useless. In a real app, core permissions would
+                         // typically be best requested during a welcome-screen flow.
+
+                         // Additionally, it is important to remember that a permission might have been
+                         // rejected without asking the user for permission (device policy or "Never ask
+                         // again" prompts). Therefore, a user interface affordance is typically implemented
+                         // when permissions are denied. Otherwise, your app could appear unresponsive to
+                         // touches or interactions which have required permissions.
+                         showSnackbar(R.string.app_name,
+                                 R.string.app_name, new View.OnClickListener() {
+                                     @Override
+                                     public void onClick(View view) {
+                                         // Build intent that displays the App settings screen.
+                                         Intent intent = new Intent();
+                                         intent.setAction(
+                                                 Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                                         Uri uri = Uri.fromParts("package",
+                                                 BuildConfig.APPLICATION_ID, null);
+                                         intent.setData(uri);
+                                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                         startActivity(intent);
+                                     }
+                                 });
+                     }
+                 }
              }
 
 
 
 
-         }
+}
