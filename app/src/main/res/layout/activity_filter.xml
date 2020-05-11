@@ -37,15 +37,17 @@
             items for a single row of RecyclerView
             -->
             <TextView
+                android:layout_weight="1"
                 android:id="@+id/name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Address"
+                android:text="Name"
                 android:textColor="#000"
                 android:textSize="20sp" />
 
             <ImageView
-                android:visibility="invisible"
+                android:layout_weight="1"
+                android:visibility="gone"
                 android:id="@+id/imageIcon"
                 android:layout_width="wrap_content"
                 android:layout_height="34dp"
@@ -78,6 +80,7 @@
             items for a single row of RecyclerView
             -->
             <TextView
+                android:layout_weight="1"
                 android:id="@+id/distance"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -86,6 +89,7 @@
                 android:textSize="20sp" />
 
             <ImageView
+                android:layout_weight="1"
                 android:visibility="invisible"
                 android:id="@+id/imageIcon2"
                 android:layout_width="wrap_content"

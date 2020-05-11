@@ -209,6 +209,16 @@ public class MapDetailActivity extends AppCompatActivity implements
         });
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        // Remove location updates to save battery.
+        //stopLocationUpdates();
+    }
+
+
+
     /**
      * Adds a marker when a place of interest (POI) is clicked with the name of
      * the POI and immediately shows the info window.
